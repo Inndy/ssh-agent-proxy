@@ -2,6 +2,10 @@
 
 A single-binary SSH agent proxy that multiplexes multiple upstream SSH agents behind one Unix socket.
 
+## Warning
+
+This is a vibe-coded project, which is not reviewed by human currently. Use at your own risk!
+
 ## Features
 
 - Aggregate keys from multiple SSH agents into a single socket
