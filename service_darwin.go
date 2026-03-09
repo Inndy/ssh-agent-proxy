@@ -192,17 +192,26 @@ func serviceUninstall() {
 }
 
 func serviceStart() {
-	if err := exec.Command("launchctl", "kickstart", serviceTarget()).Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: could not start service: %v\n", err)
+	if _, err := os.Stat(plistPath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "error: service not installed (no plist at %s)\n", plistPath)
 		os.Exit(1)
+	}
+
+	if err := exec.Command("launchctl", "bootstrap", guiDomain(), plistPath).Run(); err != nil {
+		if err := exec.Command("launchctl", "kickstart", serviceTarget()).Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: could not start service: %v\n", err)
+			os.Exit(1)
+		}
 	}
 	fmt.Printf("service started\n")
 }
 
 func serviceStop() {
-	if err := exec.Command("launchctl", "kill", "SIGTERM", serviceTarget()).Run(); err != nil {
-		fmt.Fprintf(os.Stderr, "error: could not stop service: %v\n", err)
-		os.Exit(1)
+	if err := exec.Command("launchctl", "bootout", serviceTarget()).Run(); err != nil {
+		if err := exec.Command("launchctl", "unload", plistPath).Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "error: could not stop service: %v\n", err)
+			os.Exit(1)
+		}
 	}
 	fmt.Printf("service stopped\n")
 }
